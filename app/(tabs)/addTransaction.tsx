@@ -25,24 +25,22 @@ const AddTransaction = () => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.header}>Add Transaction</Text>
-
-      {/* Amount Input */}
+      {/* Header with Icon */}
+      <View style={styles.headerContainer}>
+        <Ionicons name="swap-horizontal-outline" size={32} color="#FFD700" />
+        <Text style={styles.header}>Add Transaction</Text>
+      </View>
       <TextInput
         style={styles.input}
         placeholder="Amount"
         keyboardType="numeric"
         value={amount}
-        onChangeText={setAmount}
-      />
-
-      {/* Description Input */}
+        onChangeText={setAmount}/>
       <TextInput
         style={styles.input}
         placeholder="Description (e.g. Salary, Groceries)"
         value={description}
-        onChangeText={setDescription}
-      />
+        onChangeText={setDescription}/>
 
       {/* Type Selector */}
       <View style={styles.typeContainer}>
@@ -51,15 +49,16 @@ const AddTransaction = () => {
             styles.typeButton,
             type === "deposit" && styles.typeButtonActive,
           ]}
-          onPress={() => setType("deposit")}
-        >
-          <Ionicons name="arrow-down-circle-outline" size={20} color={type === "deposit" ? "#333" : "#FFD700"} />
+          onPress={() => setType("deposit")}>
+          <Ionicons
+            name="arrow-down-circle-outline"
+            size={20}
+            color={type === "deposit" ? "white" : "#FFD700"}/>
           <Text
             style={[
               styles.typeButtonText,
               type === "deposit" && styles.typeButtonTextActive,
-            ]}
-          >
+            ]}>
             Deposit
           </Text>
         </TouchableOpacity>
@@ -69,21 +68,20 @@ const AddTransaction = () => {
             styles.typeButton,
             type === "withdraw" && styles.typeButtonActive,
           ]}
-          onPress={() => setType("withdraw")}
-        >
-          <Ionicons name="arrow-up-circle-outline" size={20} color={type === "withdraw" ? "#333" : "#FFD700"} />
+          onPress={() => setType("withdraw")}>
+          <Ionicons
+            name="arrow-up-circle-outline"
+            size={20}
+            color={type === "withdraw" ? "white" : "#FFD700"}/>
           <Text
             style={[
               styles.typeButtonText,
               type === "withdraw" && styles.typeButtonTextActive,
-            ]}
-          >
+            ]}>
             Withdraw
           </Text>
         </TouchableOpacity>
       </View>
-
-      {/* Save Button */}
       <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
         <Text style={styles.saveButtonText}>Save Transaction</Text>
       </TouchableOpacity>
@@ -98,10 +96,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 60,
   },
+  headerContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    marginVertical:50,
+  },
   header: {
-    fontSize: 24,
+    fontSize: 30,
     fontWeight: "700",
-    marginBottom: 30,
+    marginLeft: 10,
     color: "#333",
   },
   input: {
@@ -138,7 +142,7 @@ const styles = StyleSheet.create({
     marginLeft: 8,
   },
   typeButtonTextActive: {
-    color: "#333",
+    color: "#fff",
   },
   saveButton: {
     backgroundColor: "#FFD700",
@@ -149,7 +153,7 @@ const styles = StyleSheet.create({
   saveButtonText: {
     fontSize: 16,
     fontWeight: "700",
-    color: "#333",
+    color: "#fff",
   },
 });
 

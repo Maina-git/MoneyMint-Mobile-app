@@ -5,7 +5,6 @@ import { Ionicons } from "@expo/vector-icons";
 const Profile = () => {
   return (
     <View style={styles.container}>
-      {/* Header */}
       <View style={styles.headerContainer}>
         <Text style={styles.header}>My Profile</Text>
       </View>

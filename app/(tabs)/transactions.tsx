@@ -16,8 +16,7 @@ const Transactions = () => {
         <Ionicons
           name={item.type === "deposit" ? "arrow-down-circle-outline" : "arrow-up-circle-outline"}
           size={28}
-          color={item.type === "deposit" ? "#28a745" : "#dc3545"}
-        />
+          color={item.type === "deposit" ? "#28a745" : "#dc3545"}/>
         <View style={{ marginLeft: 10 }}>
           <Text style={styles.transactionTitle}>{item.title}</Text>
           <Text style={styles.transactionDate}>{item.date}</Text>
@@ -27,8 +26,7 @@ const Transactions = () => {
         style={[
           styles.transactionAmount,
           { color: item.type === "deposit" ? "#28a745" : "#dc3545" },
-        ]}
-      >
+        ]}>
         {item.type === "deposit" ? `+ $${item.amount}` : `- $${Math.abs(item.amount)}`}
       </Text>
     </View>
