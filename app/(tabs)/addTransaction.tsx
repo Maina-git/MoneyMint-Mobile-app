@@ -1,35 +1,48 @@
 import React, { useState } from "react";
-import { View, Text, StyleSheet, TextInput, TouchableOpacity } from "react-native";
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, Modal } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 
 const AddTransaction = () => {
   const [amount, setAmount] = useState("");
   const [description, setDescription] = useState("");
-  const [type, setType] = useState<"deposit" | "withdraw">("deposit");
+  const [type, setType] = useState<"deposit" | "Make Payment">("Make Payment");
+  const [popupVisible, setPopupVisible] = useState(false);
+  const [popupMessage, setPopupMessage] = useState("");
 
   const handleSave = () => {
     if (!amount || !description) {
-      alert("Please fill all fields");
+      setPopupMessage("Please fill in all fields!");
+      setPopupVisible(true);
       return;
     }
+
     console.log({
       amount,
       description,
       type,
       date: new Date().toLocaleDateString(),
     });
-    alert("Transaction Added ✅");
+
+    setPopupMessage("Transaction Added Successfully!");
+    setPopupVisible(true);
+
     setAmount("");
     setDescription("");
   };
 
+  const handleMakePayment = () => {
+    setType("Make Payment");
+    setPopupMessage("Ready to make a payment — fill in the details");
+    setPopupVisible(true);
+  };
+
   return (
     <View style={styles.container}>
-      {/* Header with Icon */}
       <View style={styles.headerContainer}>
         <Ionicons name="swap-horizontal-outline" size={32} color="#FFD700" />
         <Text style={styles.header}>Add Transaction</Text>
       </View>
+
       <TextInput
         style={styles.input}
         placeholder="Amount"
@@ -42,49 +55,50 @@ const AddTransaction = () => {
         value={description}
         onChangeText={setDescription}/>
 
-      {/* Type Selector */}
       <View style={styles.typeContainer}>
         <TouchableOpacity
           style={[
             styles.typeButton,
-            type === "deposit" && styles.typeButtonActive,
+            type === "Make Payment" && styles.typeButtonActive,
           ]}
-          onPress={() => setType("deposit")}>
-          <Ionicons
-            name="arrow-down-circle-outline"
-            size={20}
-            color={type === "deposit" ? "white" : "#FFD700"}/>
-          <Text
-            style={[
-              styles.typeButtonText,
-              type === "deposit" && styles.typeButtonTextActive,
-            ]}>
-            Deposit
-          </Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[
-            styles.typeButton,
-            type === "withdraw" && styles.typeButtonActive,
-          ]}
-          onPress={() => setType("withdraw")}>
+          onPress={handleMakePayment}>
           <Ionicons
             name="arrow-up-circle-outline"
             size={20}
-            color={type === "withdraw" ? "white" : "#FFD700"}/>
+            color={type === "Make Payment" ? "white" : "#FFD700"}
+          />
           <Text
             style={[
               styles.typeButtonText,
-              type === "withdraw" && styles.typeButtonTextActive,
+              type === "Make Payment" && styles.typeButtonTextActive,
             ]}>
-            Withdraw
+            Make Payment
           </Text>
         </TouchableOpacity>
       </View>
+
+      {/* Save Button */}
       <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
         <Text style={styles.saveButtonText}>Save Transaction</Text>
       </TouchableOpacity>
+
+      {/* Popup Modal */}
+      <Modal
+        visible={popupVisible}
+        animationType="slide"
+        transparent
+        onRequestClose={() => setPopupVisible(false)}>
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>{popupMessage}</Text>
+            <TouchableOpacity
+              style={styles.closeButton}
+              onPress={() => setPopupVisible(false)}>
+              <Text style={styles.closeButtonText}>Close</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };
@@ -100,7 +114,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    marginVertical:50,
+    marginVertical: 50,
   },
   header: {
     fontSize: 30,
@@ -151,6 +165,43 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   saveButtonText: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#fff",
+  },
+  // Modal Styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.4)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  modalContent: {
+    width: "85%",
+    backgroundColor: "white",
+    borderRadius: 16,
+    padding: 20,
+    shadowColor: "#000",
+    shadowOpacity: 0.2,
+    shadowOffset: { width: 0, height: 4 },
+    shadowRadius: 6,
+    elevation: 6,
+    alignItems: "center",
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: "700",
+    marginBottom: 20,
+    color: "#333",
+    textAlign: "center",
+  },
+  closeButton: {
+    backgroundColor: "#FFD700",
+    paddingVertical: 12,
+    paddingHorizontal: 30,
+    borderRadius: 12,
+  },
+  closeButtonText: {
     fontSize: 16,
     fontWeight: "700",
     color: "#fff",

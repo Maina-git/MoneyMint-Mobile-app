@@ -39,8 +39,7 @@ const Transactions = () => {
         data={sampleTransactions}
         keyExtractor={(item) => item.id}
         renderItem={renderItem}
-        contentContainerStyle={{ paddingBottom: 20 }}
-      />
+        contentContainerStyle={{ paddingBottom: 20 }}/>
     </View>
   );
 };
@@ -48,7 +47,7 @@ const Transactions = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fff",
+    backgroundColor: "#FFD700",
     paddingTop: 60,
     paddingHorizontal: 20,
   },
@@ -56,7 +55,7 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: "700",
     marginBottom: 20,
-    color: "#333",
+    color: "#fff",  
   },
   transactionCard: {
     flexDirection: "row",
