@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import { auth, db } from "../config/Firebase";
 import {
   View,
   Text,
@@ -6,8 +7,18 @@ import {
   TouchableOpacity,
   Modal,
   TextInput,
+  Alert
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+
+import {
+  doc,
+  updateDoc,
+  increment,
+  onSnapshot
+} from "firebase/firestore";
+
+import {onAuthStateChanged, signOut} from "firebase/auth";
 
 
 const Home = () => {
@@ -16,21 +27,72 @@ const Home = () => {
     "deposit"
   );
   const [amount, setAmount] = useState("");
+  const [balance, setBalance] = useState(0);
+  const [userName, setUserName] = useState("");
+
+useEffect(()=>{
+  const unsubscribeAuth = onAuthStateChanged(auth, async (user)=>{
+    if(user){
+      const userRef = doc(db, "users", user.uid);
+
+
+
+      const unsubscribeSnapshot = onSnapshot(userRef, (snapshot)=>{
+        if(snapshot.exists()){
+          const data = snapshot.data();
+          setBalance(data.balance || 0);
+          setUserName(data.name || "User");
+        }
+      });
+      return unsubscribeSnapshot;
+    }else {
+      console.log("No user signed in");
+    }
+  });
+  return unsubscribeAuth;
+}, []);
+
 
   const handleOpenPopup = (type: "deposit" | "withdraw") => {
     setTransactionType(type);
     setPopupVisible(true);
   };
 
-  const handleConfirm = () => {
+  const handleConfirm = async () => {
     if (!amount) {
       alert("Please enter an amount");
       return;
     }
+   const value = parseFloat(amount);
+   if(isNaN(value) || value <= 0){
+    Alert.alert("Error", "Please enter a valid positive number");
+    return;
+   }
+
+   const user = auth.currentUser;
+   if(!user) return;
+   const userRef = doc(db, "users", user.uid);
+
+try{
+  if(transactionType === "deposit"){
+    await updateDoc(userRef, {balance:increment(value)});
+    Alert.alert("Sucess", `Deposited $${value}`);
+  }else{
+    if(balance < value){
+      Alert.alert("Error", "Insufficient funds");
+      return;
+    }
+    await updateDoc(userRef, { balance:increment(-value)});
+    Alert.alert("Success", `Withdrew $${value}`)
+  }
     alert(`${transactionType === "deposit" ? "Deposited" : "Withdrew"} $${amount}`);
     setPopupVisible(false);
     setAmount("");
-  };
+}catch(error:any){
+  Alert.alert("Error", error.message);
+}
+}
+
 
   return (
     <View style={styles.container}>
@@ -38,14 +100,10 @@ const Home = () => {
         <Ionicons name="wallet-outline" size={50} color="#FFD700" />
         <Text style={styles.header}>MoneyMate</Text>
       </View>
-
-
       <View style={styles.balanceCard}>
         <Text style={styles.balanceLabel}>Wallet Balance</Text>
-        <Text style={styles.balanceAmount}>$1,250.50</Text>
+        <Text style={styles.balanceAmount}>${balance.toFixed(2)}</Text>
       </View>
-
-  
       <View style={styles.actionsContainer}>
         <TouchableOpacity
           style={styles.actionButton}
@@ -61,8 +119,6 @@ const Home = () => {
           <Text style={styles.actionTextOutline}>Withdraw</Text>
         </TouchableOpacity>
       </View>
-
-
       <Modal
         visible={popupVisible}
         transparent
@@ -94,8 +150,6 @@ const Home = () => {
           </View>
         </View>
       </Modal>
-
-
     </View>
   );
 };
@@ -243,3 +297,17 @@ const styles = StyleSheet.create({
 });
 
 export default Home;
+
+
+
+
+
+
+
+
+
+
+
+
+
+

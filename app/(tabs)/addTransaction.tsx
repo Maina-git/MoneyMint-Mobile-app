@@ -42,7 +42,6 @@ const AddTransaction = () => {
         <Ionicons name="swap-horizontal-outline" size={32} color="#FFD700" />
         <Text style={styles.header}>Add Transaction</Text>
       </View>
-
       <TextInput
         style={styles.input}
         placeholder="Amount"
@@ -55,6 +54,7 @@ const AddTransaction = () => {
         value={description}
         onChangeText={setDescription}/>
 
+
       <View style={styles.typeContainer}>
         <TouchableOpacity
           style={[
@@ -65,8 +65,7 @@ const AddTransaction = () => {
           <Ionicons
             name="arrow-up-circle-outline"
             size={20}
-            color={type === "Make Payment" ? "white" : "#FFD700"}
-          />
+            color={type === "Make Payment" ? "white" : "#FFD700"}/>
           <Text
             style={[
               styles.typeButtonText,
@@ -77,12 +76,11 @@ const AddTransaction = () => {
         </TouchableOpacity>
       </View>
 
-      {/* Save Button */}
+  
       <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
         <Text style={styles.saveButtonText}>Save Transaction</Text>
       </TouchableOpacity>
 
-      {/* Popup Modal */}
       <Modal
         visible={popupVisible}
         animationType="slide"

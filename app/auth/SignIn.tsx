@@ -1,15 +1,61 @@
-import React from "react";
-import { View, Text, TextInput, TouchableOpacity, StyleSheet } from "react-native";
-import { Ionicons } from "@expo/vector-icons"; // money icon (use Expo vector icons)
+import React, { useState } from "react";
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  Alert,
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import {
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+} from "firebase/auth";
+import { auth, db } from "../config/Firebase";
+import { doc, setDoc } from "firebase/firestore";
 
 const SignIn = ({ onAuthSuccess }: { onAuthSuccess: () => void }) => {
-  function handleRegister() {
-    onAuthSuccess();
-  }
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [isRegister, setIsRegister] = useState(false);
 
-  function handleLogin() {
-    onAuthSuccess();
-  }
+  const handleAuth = async () => {
+    if (isRegister && !name) {
+      Alert.alert("Error", "Please enter your name");
+      return;
+    }
+    if (!email || !password) {
+      Alert.alert("Error", "Please enter email and password");
+      return;
+    }
+
+    try {
+      if (isRegister) {
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
+
+        // Add new user document in Firestore
+        await setDoc(doc(db, "users", user.uid), {
+          name: name,
+          email: user.email,
+          balance: 0,
+          createdAt: new Date(),
+        });
+
+        Alert.alert("Success", "Account created successfully");
+      } else {
+        await signInWithEmailAndPassword(auth, email, password);
+        Alert.alert("Success", "Signed in successfully");
+      }
+
+      onAuthSuccess();
+    } catch (error: any) {
+      Alert.alert("Authentication Error", error.message);
+    }
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.headerContainer}>
@@ -17,25 +63,51 @@ const SignIn = ({ onAuthSuccess }: { onAuthSuccess: () => void }) => {
         <Text style={styles.header}>MoneyMate</Text>
       </View>
 
-      {/* Input Fields */}
-      <TextInput style={styles.input} placeholder="Name" />
-      <TextInput style={styles.input} placeholder="Email" keyboardType="email-address" />
-      <TextInput style={styles.input} placeholder="Password" secureTextEntry />
+      {isRegister && (
+        <TextInput
+          style={styles.input}
+          placeholder="Name"
+          value={name}
+          onChangeText={setName}
+        />
+      )}
+      <TextInput
+        style={styles.input}
+        placeholder="Email"
+        keyboardType="email-address"
+        autoCapitalize="none"
+        value={email}
+        onChangeText={setEmail}
+      />
+      <TextInput
+        style={styles.input}
+        placeholder="Password"
+        secureTextEntry
+        value={password}
+        onChangeText={setPassword}
+      />
 
-      {/* Buttons */}
       <View style={styles.bottomContainer}>
-        <TouchableOpacity style={styles.button} onPress={handleRegister}>
-          <Text style={styles.buttonText}>Register</Text>
+        <TouchableOpacity style={styles.button} onPress={handleAuth}>
+          <Text style={styles.buttonText}>
+            {isRegister ? "Register" : "Sign In"}
+          </Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.buttonOutline} onPress={handleLogin}>
-          <Text style={styles.buttonOutlineText}>Log In</Text>
+        <TouchableOpacity
+          style={styles.buttonOutline}
+          onPress={() => setIsRegister(!isRegister)}
+        >
+          <Text style={styles.buttonOutlineText}>
+            {isRegister ? "Sign In" : "Create account"}
+          </Text>
         </TouchableOpacity>
       </View>
     </View>
   );
 };
 
+//Original MoneyMate styles unchanged
 const styles = StyleSheet.create({
   container: {
     flex: 1,

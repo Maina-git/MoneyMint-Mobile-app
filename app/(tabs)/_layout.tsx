@@ -13,6 +13,8 @@ export default function _Layout() {
   if (!isAuthenticated) {
     return <SignIn onAuthSuccess={onAuthSuccess} />;
   }
+  
+
 
   return (
     <Tabs
@@ -23,8 +25,6 @@ export default function _Layout() {
         tabBarInactiveTintColor: "#999",
         tabBarStyle: {
           backgroundColor: "#fff",
-          borderTopLeftRadius: 20,
-          borderTopRightRadius: 20,
           height: 100,
           paddingBottom: 8,
           shadowColor: "#000",

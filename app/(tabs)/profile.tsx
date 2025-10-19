@@ -1,8 +1,44 @@
-import React from "react";
-import { View, Text, StyleSheet, TouchableOpacity, Image } from "react-native";
+import React, {useState, useEffect} from "react";
+import { View, Text, StyleSheet, TouchableOpacity, Image, Alert } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { auth, db } from "../config/Firebase";
+import { doc, getDoc } from "firebase/firestore";
+import {signOut, onAuthStateChanged} from "firebase/auth";
 
-const Profile = () => {
+const Profile = ({navigation}:any) => {
+
+const [userName, setUserName] = useState("");
+const [email, setEmail] = useState("");
+
+useEffect(()=>{
+  const unsubscribe = onAuthStateChanged(auth, async (user)=>{
+    if(user){
+      setEmail(user.email || "");
+      const userRef = doc(db, "users", user.uid);
+      const snapshot = await getDoc(userRef);
+      if(snapshot.exists()){
+        setUserName(snapshot.data().name || "");
+      }else{
+        console.log("User document not found in Firestore");
+      }
+    }
+  })
+  return unsubscribe;
+}, []);
+
+
+const handleLogout = async () => {
+  try{
+    await signOut(auth);
+    Alert.alert("Signed Out", "You have been logged out successfully");
+    navigation.replace("SignIn");
+  }catch(error:any){
+    Alert.alert("Logout Error", error.message);
+  }
+}
+
+
+
   return (
     <View style={styles.container}>
       <View style={styles.headerContainer}>
@@ -10,16 +46,13 @@ const Profile = () => {
       </View>
 
       {/* Profile Card */}
-      <View style={styles.profileCard}>
-        <Image
-          source={{ uri: "https://i.pravatar.cc/150?img=12" }}
-          style={styles.avatar}
-        />
-        <Text style={styles.name}>John Doe</Text>
-        <Text style={styles.email}>john.doe@email.com</Text>
+    <View style={styles.profileCard}>
+      <View style={styles.avatarIcon}>
+       <Ionicons name="person-circle-outline" size={150} color="#FFD700" />
+        </View>
+        <Text style={styles.name}>{userName}</Text>
+      <Text style={styles.email}>{email}</Text>
       </View>
-
-      {/* Options */}
       <View style={styles.optionsContainer}>
         <TouchableOpacity style={styles.option}>
           <Ionicons name="person-circle-outline" size={24} color="#FFD700" />
@@ -30,13 +63,12 @@ const Profile = () => {
           <Ionicons name="notifications-outline" size={24} color="#FFD700" />
           <Text style={styles.optionText}>Notifications</Text>
         </TouchableOpacity>
-
         <TouchableOpacity style={styles.option}>
           <Ionicons name="shield-checkmark-outline" size={24} color="#FFD700" />
           <Text style={styles.optionText}>Security</Text>
         </TouchableOpacity>
-
-        <TouchableOpacity style={[styles.option, styles.logout]}>
+        <TouchableOpacity   onPress={handleLogout}
+         style={[styles.option, styles.logout]}>
           <Ionicons name="log-out-outline" size={24} color="#dc3545" />
           <Text style={[styles.optionText, { color: "#dc3545" }]}>
             Log Out
@@ -66,14 +98,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 40,
   },
-  avatar: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    borderWidth: 3,
-    borderColor: "#FFD700",
-    marginBottom: 15,
-  },
+
+avatarIcon: {
+  marginBottom: 15,
+},
   name: {
     fontSize: 20,
     fontWeight: "700",
