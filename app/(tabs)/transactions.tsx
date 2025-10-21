@@ -1,45 +1,100 @@
-import React from "react";
-import { View, Text, StyleSheet, FlatList } from "react-native";
+import React, { useEffect, useState } from "react";
+import { View, Text, StyleSheet, FlatList, ActivityIndicator } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-
-const sampleTransactions = [
-  { id: "1", title: "Deposit", amount: 200, date: "Sep 20, 2025", type: "deposit" },
-  { id: "2", title: "Grocery Shopping", amount: -50, date: "Sep 18, 2025", type: "withdraw" },
-  { id: "3", title: "Salary", amount: 1200, date: "Sep 15, 2025", type: "deposit" },
-  { id: "4", title: "Electric Bill", amount: -80, date: "Sep 12, 2025", type: "withdraw" },
-];
+import { auth, db } from "../config/Firebase";
+import {
+  collection,
+  onSnapshot,
+  orderBy,
+  query,
+} from "firebase/firestore";
 
 const Transactions = () => {
+  const [transactions, setTransactions] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const user = auth.currentUser;
+    if (!user) return;
+
+    const transactionsRef = collection(db, "users", user.uid, "transactions");
+    const q = query(transactionsRef, orderBy("date", "desc"));
+
+    const unsubscribe = onSnapshot(
+      q,
+      (snapshot) => {
+        const userTransactions = snapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+        setTransactions(userTransactions);
+        setLoading(false);
+      },
+      (error) => {
+        console.error("Error fetching transactions:", error);
+        setLoading(false);
+      }
+    );
+
+    return () => unsubscribe();
+  }, []);
+
   const renderItem = ({ item }: any) => (
     <View style={styles.transactionCard}>
       <View style={styles.transactionInfo}>
         <Ionicons
-          name={item.type === "deposit" ? "arrow-down-circle-outline" : "arrow-up-circle-outline"}
+          name={
+            item.type === "deposit"
+              ? "arrow-down-circle-outline"
+              : "arrow-up-circle-outline"
+          }
           size={28}
-          color={item.type === "deposit" ? "#28a745" : "#dc3545"}/>
+          color={item.type === "deposit" ? "#28a745" : "#FFD700"}/>
         <View style={{ marginLeft: 10 }}>
-          <Text style={styles.transactionTitle}>{item.title}</Text>
-          <Text style={styles.transactionDate}>{item.date}</Text>
+          <Text style={styles.transactionTitle}>
+            {item.description || item.type}
+          </Text>
+          <Text style={styles.transactionDate}>
+            {new Date(item.date).toLocaleString()}
+          </Text>
         </View>
       </View>
       <Text
         style={[
           styles.transactionAmount,
-          { color: item.type === "deposit" ? "#28a745" : "#dc3545" },
+          { color: item.type === "deposit" ? "#28a745" : "#FFD700" },
         ]}>
-        {item.type === "deposit" ? `+ $${item.amount}` : `- $${Math.abs(item.amount)}`}
+        {item.type === "deposit"
+          ? `+ $${item.amount}`
+          : `- $${Math.abs(item.amount)}`}
       </Text>
     </View>
   );
 
+  if (loading) {
+    return (
+      <View style={[styles.container, { justifyContent: "center" }]}>
+        <ActivityIndicator size="large" color="#fff" />
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
+      <View style={styles.headerContainer}>
+        <Ionicons name="card-outline" size={28} color="#fff" />
       <Text style={styles.header}>Recent Transactions</Text>
-      <FlatList
-        data={sampleTransactions}
-        keyExtractor={(item) => item.id}
-        renderItem={renderItem}
-        contentContainerStyle={{ paddingBottom: 20 }}/>
+       </View>
+
+      {transactions.length === 0 ? (
+        <Text style={styles.noTransactionsText}>No transactions yet</Text>
+      ) : (
+        <FlatList
+          data={transactions}
+          keyExtractor={(item) => item.id}
+          renderItem={renderItem}
+          contentContainerStyle={{ paddingBottom: 20 }}/>
+      )}
     </View>
   );
 };
@@ -47,15 +102,27 @@ const Transactions = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#FFD700",
+    backgroundColor: "#ffffff",
     paddingTop: 60,
     paddingHorizontal: 20,
   },
-  header: {
-    fontSize: 24,
-    fontWeight: "700",
-    marginBottom: 20,
-    color: "#fff",  
+
+headerContainer: {
+  flexDirection: "row",
+  alignItems: "center",
+  marginBottom: 20,
+},
+header: {
+  fontSize: 24,
+  fontWeight: "700",
+  color: "#0000",
+  marginLeft: 10,
+},
+  noTransactionsText: {
+    color: "#fff",
+    textAlign: "center",
+    marginTop: 40,
+    fontSize: 16,
   },
   transactionCard: {
     flexDirection: "row",
@@ -92,3 +159,12 @@ const styles = StyleSheet.create({
 });
 
 export default Transactions;
+
+
+
+
+
+
+
+
+

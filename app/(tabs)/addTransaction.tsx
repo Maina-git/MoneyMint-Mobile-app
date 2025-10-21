@@ -1,6 +1,22 @@
 import React, { useState } from "react";
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, Modal } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TextInput,
+  TouchableOpacity,
+  Modal,
+  Alert,
+} from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { auth, db } from "../config/Firebase"; 
+import {
+  doc,
+  updateDoc,
+  collection,
+  addDoc,
+  getDoc,
+} from "firebase/firestore";
 
 const AddTransaction = () => {
   const [amount, setAmount] = useState("");
@@ -9,25 +25,58 @@ const AddTransaction = () => {
   const [popupVisible, setPopupVisible] = useState(false);
   const [popupMessage, setPopupMessage] = useState("");
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!amount || !description) {
       setPopupMessage("Please fill in all fields!");
       setPopupVisible(true);
       return;
     }
 
-    console.log({
-      amount,
-      description,
-      type,
-      date: new Date().toLocaleDateString(),
-    });
+    try {
+      const user = auth.currentUser;
+      if (!user) {
+        Alert.alert("Error", "No user logged in.");
+        return;
+      }
 
-    setPopupMessage("Transaction Added Successfully!");
-    setPopupVisible(true);
+      const userRef = doc(db, "users", user.uid);
+      const userSnap = await getDoc(userRef);
 
-    setAmount("");
-    setDescription("");
+      if (!userSnap.exists()) {
+        Alert.alert("Error", "User not found in database.");
+        return;
+      }
+
+      const userData = userSnap.data();
+      const currentBalance = userData.balance || 0;
+      const numericAmount = parseFloat(amount);
+
+      let newBalance = currentBalance;
+      if (type === "Make Payment") {
+        if (numericAmount > currentBalance) {
+          Alert.alert("Error", "Insufficient balance.");
+          return;
+        }
+        newBalance -= numericAmount;
+      } else {
+        newBalance += numericAmount;
+      }
+      await addDoc(collection(userRef, "transactions"), {
+        amount: numericAmount,
+        description,
+        type,
+        date: new Date().toISOString(),
+      });
+
+      await updateDoc(userRef, { balance: newBalance });
+
+      setPopupMessage("Transaction added successfully!");
+      setPopupVisible(true);
+      setAmount("");
+      setDescription("");
+    } catch (error: any) {
+      Alert.alert("Error", error.message);
+    }
   };
 
   const handleMakePayment = () => {
@@ -54,7 +103,6 @@ const AddTransaction = () => {
         value={description}
         onChangeText={setDescription}/>
 
-
       <View style={styles.typeContainer}>
         <TouchableOpacity
           style={[
@@ -74,13 +122,28 @@ const AddTransaction = () => {
             Make Payment
           </Text>
         </TouchableOpacity>
+        <TouchableOpacity
+          style={[
+            styles.typeButton,
+            type === "deposit" && styles.typeButtonActive,
+          ]}
+          onPress={() => setType("deposit")}>
+          <Ionicons
+            name="arrow-down-circle-outline"
+            size={20}
+            color={type === "deposit" ? "white" : "#FFD700"}/>
+          <Text
+            style={[
+              styles.typeButtonText,
+              type === "deposit" && styles.typeButtonTextActive,
+            ]}>
+            Deposit
+          </Text>
+        </TouchableOpacity>
       </View>
-
-  
       <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
         <Text style={styles.saveButtonText}>Save Transaction</Text>
       </TouchableOpacity>
-
       <Modal
         visible={popupVisible}
         animationType="slide"
@@ -167,7 +230,6 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     color: "#fff",
   },
-  // Modal Styles
   modalOverlay: {
     flex: 1,
     backgroundColor: "rgba(0,0,0,0.4)",
@@ -207,3 +269,15 @@ const styles = StyleSheet.create({
 });
 
 export default AddTransaction;
+
+
+
+
+
+
+
+
+
+
+
+

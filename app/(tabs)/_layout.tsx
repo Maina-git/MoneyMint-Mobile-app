@@ -14,8 +14,6 @@ export default function _Layout() {
     return <SignIn onAuthSuccess={onAuthSuccess} />;
   }
   
-
-
   return (
     <Tabs
       screenOptions={({ route }) => ({

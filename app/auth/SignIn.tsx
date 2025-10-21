@@ -84,8 +84,7 @@ const SignIn = ({ onAuthSuccess }: { onAuthSuccess: () => void }) => {
         placeholder="Password"
         secureTextEntry
         value={password}
-        onChangeText={setPassword}
-      />
+        onChangeText={setPassword}/>
 
       <View style={styles.bottomContainer}>
         <TouchableOpacity style={styles.button} onPress={handleAuth}>
@@ -96,8 +95,7 @@ const SignIn = ({ onAuthSuccess }: { onAuthSuccess: () => void }) => {
 
         <TouchableOpacity
           style={styles.buttonOutline}
-          onPress={() => setIsRegister(!isRegister)}
-        >
+          onPress={() => setIsRegister(!isRegister)}>
           <Text style={styles.buttonOutlineText}>
             {isRegister ? "Sign In" : "Create account"}
           </Text>
